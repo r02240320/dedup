@@ -97,7 +97,8 @@ public class App {
                 ++i;
                 System.out.print(String.format("List: %d has %d duplicates!", i, col.size()));
                 if (!summary) {
-                    var str = String.join("\n\t", col.stream().map(p -> p.toString()).toList());
+                    var items = col.stream().map(Path::toString).toArray(String[]::new);
+                    var str = String.join("\n\t", items);
                     System.out.print(String.format("\n\t%s", str));
                 }
                 System.out.println();

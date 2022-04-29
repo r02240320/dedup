@@ -10,16 +10,23 @@ import java.util.function.Consumer;
 
 public class DuplicateFinder {
 
-    public Collection<Collection<Path>> getDuplicates(Path dir, boolean useThreads) throws IOException {
+    public Collection<Collection<Path>> getDuplicates(Path dir, boolean threaded) throws IOException {
 
-        var fileList = useThreads ? parsePathThreaded(dir) : parsePath(dir);
-        var fileStream = fileList.values().stream().filter(list -> list.size() > 1).parallel();
+        var values = threaded ? parsePathThreaded(dir).values() : parsePath(dir).values();
+        values.removeIf(list -> list.size() == 1);
 
+        // For each set, calculate checksums and bucket them accordingly
         var result = createResultMap();
         var task = getFileListTask(result);
-        fileStream.forEach(task);
+        if (threaded)
+            values.parallelStream().forEach(task);
+        else
+            values.forEach(task);
 
-        return result.values().stream().filter(l -> l.size() > 1).toList();
+        // Filter out buckets that have single files and return the rest
+        values = result.values();
+        values.removeIf(l -> l.size() == 1);
+        return values;
     }
 
     protected Map<Long, Collection<Path>> parsePath(Path dir) throws IOException {
