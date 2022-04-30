@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HybridScannerTest {
+public class ThreadedScannerTest {
 
     DuplicateScanner driver;
 
@@ -23,7 +23,7 @@ public class HybridScannerTest {
 
     @Before
     public void setUp() throws Exception {
-        driver = new HybridScanner();
+        driver = new ThreadedScanner();
         iconPath = Set.of(Path.of(getClass().getResource("icons").toURI()));
     }
 
