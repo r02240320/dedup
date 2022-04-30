@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FileChecksumTest {
+public class FileComparatorTest {
 
     Path iconPath;
 
@@ -23,8 +23,8 @@ public class FileChecksumTest {
 
     @Test
     public void shouldBeSameChecksum() throws Exception {
-        var chk1 = FileChecksum.checksumFor(Path.of(iconPath.toString(), "uu.gif"));
-        var chk2 = FileChecksum.checksumFor(Path.of(iconPath.toString(), "uuencoded.gif"));
+        var chk1 = FileComparator.checksumFor(Path.of(iconPath.toString(), "uu.gif"));
+        var chk2 = FileComparator.checksumFor(Path.of(iconPath.toString(), "uuencoded.gif"));
         assertEquals(chk1, chk2);
     }
 
@@ -32,14 +32,14 @@ public class FileChecksumTest {
     public void shouldBeTheSame() throws Exception {
         var file1 = Path.of(iconPath.toString(), "uu.gif");
         var file2 = Path.of(iconPath.toString(), "uuencoded.gif");
-        assertTrue(FileChecksum.isSameFile(file1, file2));
+        assertTrue(FileComparator.isSameFile(file1, file2));
     }
 
     @Test
     public void shouldBeDifferent() throws Exception {
         var file1 = Path.of(iconPath.toString(), "uu.gif");
         var file2 = Path.of(iconPath.toString(), "uu.png");
-        assertFalse(FileChecksum.isSameFile(file1, file2));
+        assertFalse(FileComparator.isSameFile(file1, file2));
     }
 
 }

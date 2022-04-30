@@ -5,57 +5,51 @@ package dedup;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class DuplicateFinderTest {
+public class HybridScannerTest {
 
-    DuplicateFinder driver;
+    HybridScanner driver;
 
-    Path iconPath;
+    Collection<Path> iconPath;
 
     @Before
     public void setUp() throws Exception {
-        driver = new DuplicateFinder();
-        iconPath = Path.of(getClass().getResource("icons").toURI());
+        driver = new HybridScanner();
+        iconPath = Set.of(Path.of(getClass().getResource("icons").toURI()));
     }
 
     @Test
     public void shouldFindDuplicatesUsingThreading() throws Exception {
-        var res = driver.getDuplicates(iconPath, true);
+        var res = driver.scan(iconPath);
         assertEquals(4, res.size());
     }
 
     @Test
     public void shouldFindDuplicatesUsingNonThreading() throws Exception {
-        var res = driver.getDuplicates(iconPath, false);
+        var res = driver.scan(iconPath);
         assertEquals(4, res.size());
     }
 
     @Test
     public void shouldThrowErrorOnFile() throws Exception {
         assertThrows(IOException.class, () -> {
-            var icon = Path.of(iconPath.toString(), "uu.png");
-            driver.getDuplicates(icon, false);
+            var icon = Set.of(Path.of(iconPath.toString(), "uu.png"));
+            driver.scan(icon);
         });
-    }
-
-    @Test
-    public void shouldBeTheSame() throws Exception {
-        var file1 = Path.of(iconPath.toString(), "uu.gif");
-        var file2 = Path.of(iconPath.toString(), "uuencoded.gif");
-        assertTrue(FileChecksum.isSameFile(file1, file2));
     }
 
     @Test
     public void shouldThrowErrorOnNull() throws Exception {
         assertThrows(NullPointerException.class, () -> {
-            driver.getDuplicates(null, false);
+            driver.scan(null);
         });
     }
 

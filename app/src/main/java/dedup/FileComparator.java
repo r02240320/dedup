@@ -4,24 +4,32 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 
 /**
- * This class is a utility class to calculate a file's checksum using CRC32.
+ * This class compares files for equality using CRC32 checksums.
  * 
- * It can also be used to compare files for equality
  */
-public class FileChecksum {
+public class FileComparator {
 
     private static int BUFSIZE = 8192;
 
+    static void calculateChecksum(Path path, Map<Long, Collection<Path>> resultSet) throws IOException {
+        long sum = checksumFor(path);
+        if (!resultSet.containsKey(sum)) {
+            resultSet.putIfAbsent(sum, new ConcurrentLinkedQueue<>());
+        }
+        resultSet.get(sum).add(path);
+    }
+
     public static long checksumFor(Path file) throws IOException {
         Objects.requireNonNull(file);
-        var opts = StandardOpenOption.READ;
-        var strm = new BufferedInputStream(Files.newInputStream(file, opts));
+        var strm = new BufferedInputStream(Files.newInputStream(file));
         var chckStrm = new CheckedInputStream(strm, new CRC32());
         try (strm; chckStrm) {
             var buf = new byte[BUFSIZE];
