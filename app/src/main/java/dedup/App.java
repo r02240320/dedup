@@ -23,7 +23,6 @@ public class App {
         testScanner(dirs, new SimpleScanner(), "SIMPLE");
         testScanner(dirs, new HybridScanner(), "HYBRID");
         testScanner(dirs, new ThreadedScanner(), "THREADED");
-
     }
 
     static Collection<Path> getDirectory(String[] args) {
@@ -64,18 +63,16 @@ public class App {
     }
 
     static void printDuplicateResults(Collection<Collection<Path>> list, Duration duration, String type) {
-        var fmt = "%s Duplicate finder took: %s and found: %d duplicates\n";
+        var fmt = "%s Duplicate finder took: %s and found: %d duplicates";
         System.out.println(String.format(fmt, type, duration, list.size()));
 
         if (list.size() <= 20) {
             int i = 0;
             for (var col : list) {
                 ++i;
-                System.out.print(String.format("List: %d has %d duplicates!", i, col.size()));
+                System.out.println(String.format("\nList: %d has %d duplicates!", i, col.size()));
                 var items = col.stream().map(Path::toString).toArray(String[]::new);
-                var str = String.join("\n\t", items);
-                System.out.print(String.format("\n\t%s", str));
-                System.out.println();
+                System.out.println(String.format("\t%s", String.join("\n\t", items)));
             }
         }
     }
