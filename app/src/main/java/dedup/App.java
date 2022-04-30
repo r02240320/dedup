@@ -7,41 +7,22 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class App {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        var dir = getDirectory(args);
-        // compareWalkTimes(dir);
-        // findDuplicates(dir, true);
+        var dirs = getDirectory(args);
 
-        // =============================== SIMPLE ===============================
-        DuplicateScanner drv = new SimpleScanner();
-        var start = System.nanoTime();
-        var res = drv.scan(dir);
-        // var res = drv.getPotentialDuplicates(dir, new LinkedList<>());
-        var dur = Duration.ofNanos(System.nanoTime() - start);
-        // printRunSummary(res, dur, "SIMPLE");
-        printDuplicateResults(res, dur, "SIMPLE");
+        // ========================== FILE WALKERS TEST ========================
+        testWalker(dirs, new SimpleScanner(), "SIMPLE");
+        testWalker(dirs, new HybridScanner(), "HYBRID");
+        testWalker(dirs, new ThreadedScanner(), "THREADED");
 
-        // =============================== HYBRID ===============================
-        drv = new HybridScanner();
-        start = System.nanoTime();
-        res = drv.scan(dir);
-        // res = drv.getPotentialDuplicates(dir, new ConcurrentLinkedQueue<>());
-        dur = Duration.ofNanos(System.nanoTime() - start);
-        printDuplicateResults(res, dur, "HYBRID");
-        // printRunSummary(res, dur, "HYBRID");
-
-        // =============================== THREADED==============================
-        drv = new ThreadedScanner();
-        start = System.nanoTime();
-        res = drv.scan(dir);
-        // res = drv.getPotentialDuplicates(dir, new ConcurrentLinkedQueue<>());
-        dur = Duration.ofNanos(System.nanoTime() - start);
-        printDuplicateResults(res, dur, "THREADED");
-        // printRunSummary(res, dur, "THREADED");
+        // ========================== FILE WALKERS TEST ========================
+        testScanner(dirs, new SimpleScanner(), "SIMPLE");
+        testScanner(dirs, new HybridScanner(), "HYBRID");
+        testScanner(dirs, new ThreadedScanner(), "THREADED");
 
     }
 
@@ -63,60 +44,21 @@ public class App {
         }
     }
 
-    static void compareWalkTimes(Path dir) throws IOException {
-        // var dpf = new DuplicateFinder();
-        // var startTs = System.nanoTime();
-
-        // var map1 = dpf.parsePath(dir);
-        // var duration = Duration.ofNanos(System.nanoTime() - startTs);
-        // printRunSummary(map1, duration, false);
-
-        // var map2 = dpf.parsePathThreaded(dir);
-        // duration = Duration.ofNanos(System.nanoTime() - startTs);
-        // printRunSummary(map2, duration, true);
-
-        // compareMaps(map1, map2);
+    static void testScanner(Collection<Path> dirs, DuplicateScanner drv, String name) {
+        var start = System.nanoTime();
+        var res = drv.scan(dirs);
+        var dur = Duration.ofNanos(System.nanoTime() - start);
+        printDuplicateResults(res, dur, name);
     }
 
-    static void findDuplicates(Path dir, boolean useTreads) throws IOException, InterruptedException {
-
-        // var dpf = new DuplicateFinder();
-        // long startTs = System.nanoTime();
-        // var dups = dpf.getDuplicates(dir, useTreads);
-        // var duration = Duration.ofNanos(System.nanoTime() - startTs);
-
-        // printDuplicateResults(dups, duration, false);
+    static void testWalker(Collection<Path> dirs, DuplicateScanner drv, String name) {
+        var start = System.nanoTime();
+        var res = drv.getPotentialDuplicates(dirs, new ConcurrentLinkedQueue<>());
+        var dur = Duration.ofNanos(System.nanoTime() - start);
+        printTraverseSummary(res, dur, name);
     }
 
-    static void compareMaps(Map<Long, Collection<Path>> map1, Map<Long, Collection<Path>> map2) {
-        boolean same = map1.size() == map2.size();
-        if (same) {
-            for (var kv : map1.entrySet()) {
-                if (!same)
-                    break;
-                var k = kv.getKey();
-                var v1 = kv.getValue();
-                var v2 = map2.get(k);
-                if (v2 == null || v1.size() != v2.size())
-                    same = false;
-                else
-                    same = v2.containsAll(v1);
-            }
-        }
-
-        System.out.println(String.format("The maps are: %s", same ? "Equal" : "Different"));
-    }
-
-    static void printDetails(Map<Long, Collection<Path>> fileMap) {
-        for (var kv : fileMap.entrySet()) {
-            var cnt = kv.getValue().size();
-            if (cnt > 1) {
-                System.out.println("The are %s files with size: %d".formatted(cnt, kv.getKey()));
-            }
-        }
-    }
-
-    static void printRunSummary(Collection<Path> fileMap, Duration duration, String type) {
+    static void printTraverseSummary(Collection<Path> fileMap, Duration duration, String type) {
         var fmt = "The %s scanner run took: %s to go through %s files";
         System.out.println(fmt.formatted(type, duration, fileMap.size()));
     }

@@ -21,6 +21,7 @@ public class HybridScanner extends ThreadedScanner {
         var resultset = getChecksumItems();
         var folders = getPendingFolderItems();
         scanSameSizeFiles(folders, resultset);
+        folders.clear();
     }
 
     private Collection<Path> scanSameSizeFiles(Collection<Path> dirs, Collection<Path> result) {
