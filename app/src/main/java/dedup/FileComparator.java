@@ -4,10 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 
@@ -18,14 +15,6 @@ import java.util.zip.CheckedInputStream;
 public class FileComparator {
 
     private static int BUFSIZE = 8192;
-
-    static void calculateChecksum(Path path, Map<Long, Collection<Path>> resultSet) throws IOException {
-        long sum = checksumFor(path);
-        if (!resultSet.containsKey(sum)) {
-            resultSet.putIfAbsent(sum, new ConcurrentLinkedQueue<>());
-        }
-        resultSet.get(sum).add(path);
-    }
 
     public static long checksumFor(Path file) throws IOException {
         Objects.requireNonNull(file);

@@ -40,7 +40,7 @@ public class SimpleFileWalker implements FileVisitor<Path> {
     private Path baseDir;
 
     /**
-     * 
+     *
      * @param checksumItems A list to push items that qualify for checksum
      * @param baseDir       The folder to start the scanning from
      * @throws IOException

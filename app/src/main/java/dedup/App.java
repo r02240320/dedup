@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class App {
 
@@ -52,7 +52,7 @@ public class App {
 
     static void testWalker(Collection<Path> dirs, DuplicateScanner drv, String name) {
         var start = System.nanoTime();
-        var res = drv.getPotentialDuplicates(dirs, new ConcurrentLinkedQueue<>());
+        var res = drv.getPotentialDuplicates(dirs, new ConcurrentLinkedDeque<>());
         var dur = Duration.ofNanos(System.nanoTime() - start);
         printTraverseSummary(res, dur, name);
     }

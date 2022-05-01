@@ -10,9 +10,9 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -23,12 +23,12 @@ public class ThreadedScanner implements DuplicateScanner {
 
     private Data data;
 
-    private Queue<ThreadedFileWalker> workerPool = new ConcurrentLinkedQueue<>();
+    private Queue<ThreadedFileWalker> workerPool = new LinkedBlockingDeque<>();
 
     public ThreadedScanner() {
         data = new Data();
-        data.PENDING_FOLDERS = new LinkedBlockingQueue<>();
-        data.CHECKSUM_ITEMS = new LinkedBlockingQueue<>();
+        data.PENDING_FOLDERS = new LinkedBlockingDeque<>();
+        data.CHECKSUM_ITEMS = new LinkedBlockingDeque<>();
         data.SIZE_MAP = new ConcurrentHashMap<>();
         data.HASH_MAP = new ConcurrentHashMap<>();
         data.KNOWN_SIZES = new HashSet<>();
@@ -130,12 +130,13 @@ public class ThreadedScanner implements DuplicateScanner {
     }
 
     private void startChecksum() {
-        Consumer<Path> checksumCalc = (dir) -> {
+        Consumer<Path> checksumCalc = (file) -> {
             try {
-                FileComparator.calculateChecksum(dir, data.HASH_MAP);
+                var sum = FileComparator.checksumFor(file);
+                saveChecksumResult(sum, file);
             } catch (IOException ex) {
             } finally {
-                data.CHECKSUM_ITEMS.remove(dir);
+                data.CHECKSUM_ITEMS.remove(file);
             }
         };
 
@@ -150,6 +151,13 @@ public class ThreadedScanner implements DuplicateScanner {
 
     private boolean hasFolderTasks() {
         return data.PENDING_FOLDERS.size() > 0;
+    }
+
+    private void saveChecksumResult(Long sum, Path file) {
+        if (!data.HASH_MAP.containsKey(sum)) {
+            data.HASH_MAP.putIfAbsent(sum, new ConcurrentLinkedDeque<>());
+        }
+        data.HASH_MAP.get(sum).add(file);
     }
 
     static class Data {
